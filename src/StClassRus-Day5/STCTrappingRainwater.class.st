@@ -95,7 +95,7 @@ STCTrappingRainwater >> renderOn: aCanvas [
 		marker := RSCircle new
 			size: self boxSize;
 			color: Color lightGreen;
-			translateTopLeftTo: (self boxSize * currentPosition) @ 0;
+			translateTopRightTo: (self boxSize * currentPosition) @ 0;
 			yourself.
 		aCanvas add: marker].
 	aCanvas addAll: rocks.
