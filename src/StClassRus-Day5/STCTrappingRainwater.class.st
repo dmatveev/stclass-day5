@@ -30,7 +30,6 @@ STCTrappingRainwater >> currentPosition: anObject [
 STCTrappingRainwater >> elevationMap: anArray [
 	elevationMap := anArray.
 	trapped := 0.
-	currentPosition := 0.
 	chunks := Stack new.
 ]
 
