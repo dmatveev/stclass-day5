@@ -26,6 +26,21 @@ STCTrappingRainwater >> currentPosition: anObject [
 	currentPosition := anObject
 ]
 
+{ #category : #rendering }
+STCTrappingRainwater >> drops [
+	^chunks collect: [ :each || drop |
+		"For a better visual, stretch the water chunk up to the 
+		current position"
+		 drop := RSBox new
+			width: self boxSize * (currentPosition - each position);
+			height: self boxSize * each length;
+			color: Color lightBlue;
+			model: each;
+			translateBottomLeftTo: (self boxSize * (each position - 1))
+										@ (self boxSize * each startHeight negated);
+			yourself ]
+]
+
 { #category : #accessing }
 STCTrappingRainwater >> elevationMap: anArray [
 	elevationMap := anArray.
@@ -50,7 +65,7 @@ STCTrappingRainwater >> handle: i [
 									^self "break the loop - element stays in the stack"]]]
 ]
 
-{ #category : #accessing }
+{ #category : #rendering }
 STCTrappingRainwater >> inspectorCanvas [
 	<inspectorPresentationOrder: 90 title: 'View'>
 	| c |
@@ -59,6 +74,15 @@ STCTrappingRainwater >> inspectorCanvas [
 	^ SpRoassal3InspectorPresenter new
 		canvas: c;
 		yourself
+]
+
+{ #category : #rendering }
+STCTrappingRainwater >> marker [
+	^RSCircle new
+		size: self boxSize;
+		color: Color lightGreen;
+		translateTopRightTo: (self boxSize * currentPosition) @ 0;
+		yourself.
 ]
 
 { #category : #accessing }
@@ -70,37 +94,27 @@ STCTrappingRainwater >> newChunk: atPosition from: higherPoint to: lowerPoint [
 				yourself
 ]
 
-{ #category : #accessing }
+{ #category : #rendering }
 STCTrappingRainwater >> renderOn: aCanvas [
-	| high x rocks drops |
-	high := elevationMap max.
+	aCanvas addAll: self rocks.
+	aCanvas addAll: self drops.
+	currentPosition ifNotNil: [	aCanvas add: self marker].
+	aCanvas @ RSCanvasController.
+]
+
+{ #category : #rendering }
+STCTrappingRainwater >> rocks [
+	| x |
 	x := 0.
-	rocks := elevationMap collect: [ :each || box |
+	^ elevationMap collect: [ :each || box |
 		box := RSBox new
 			width: self boxSize;
 			height: self boxSize * each;
 			color: Color lightGray;
+			model: each;
 			translateBottomLeftTo: (self boxSize * x) @ 0.
 		x := x + 1.
-		box ].
-	drops := chunks collect: [ :each || drop |
-		 drop := RSBox new
-			width: self boxSize;
-			height: self boxSize * each length;
-			color: Color lightBlue;
-			model: each;
-			translateBottomRightTo: (self boxSize * each position) @ (self boxSize * each startHeight negated);
-			yourself ].
-	currentPosition ifNotNil: [ | marker |
-		marker := RSCircle new
-			size: self boxSize;
-			color: Color lightGreen;
-			translateTopRightTo: (self boxSize * currentPosition) @ 0;
-			yourself.
-		aCanvas add: marker].
-	aCanvas addAll: rocks.
-	aCanvas addAll: drops.
-	aCanvas @ RSCanvasController.
+		box ]
 ]
 
 { #category : #accessing }
@@ -109,5 +123,9 @@ STCTrappingRainwater >> solve [
 	2 to: elevationMap size do: [ :i |
 		self currentPosition: i.
 		self handle: i ].
+	"Reset the internal state to avoid artifacts in the
+	solved visualization"
+	chunks removeAll.
+	currentPosition := nil.
 	^trapped
 ]
